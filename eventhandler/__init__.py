@@ -1,3 +1,4 @@
+import collections
 import sys
 import types
 
@@ -39,6 +40,7 @@ class EventHandler:
                 True will ignore any callbacks exceptions.
         """
         self.__events = {}
+        self.__event_queue = collections.deque()
         self.verbose = verbose
         self.tolerate_exceptions = tolerate_callbacks_exceptions
         self.stream_output = stream_output
@@ -196,6 +198,16 @@ class EventHandler:
                     all_ok = False
                     continue
 
+        return all_ok
+
+    def enqueue(self, event_name: str, *args, **kwargs) -> None:
+        self.__event_queue.append((event_name, args, kwargs))
+    
+    def loop(self) -> bool:
+        all_ok = True
+        for event in self.__event_queue:
+            event_name, args, kwargs = event
+            all_ok = self.fire(event_name, *args, *kwargs) and all_ok
         return all_ok
 
     def __str__(self) -> str:
