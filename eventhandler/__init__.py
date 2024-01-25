@@ -200,14 +200,24 @@ class EventHandler:
 
         return all_ok
 
-    def enqueue(self, event_name: str, *args, **kwargs) -> None:
+    def append(self, event_name: str, args, kwargs) -> None:
+        '''Appends an event to the event queue without firing it immediatelly.
+
+        Args:
+            event_name (str): Event to trigger.
+            args: Arguments to be passed to callback functions execution.
+            kwargs: Keyword arguments to be passed to callback functions execution.
+        '''
         self.__event_queue.append((event_name, args, kwargs))
     
     def loop(self) -> bool:
+        '''Loop through the event queue firing each event in sequence. Returns True
+        if all events fired without raising an exception or False otherwise.'''
         all_ok = True
-        for event in self.__event_queue:
+        while self.__event_queue:
+            event = self.__event_queue.popleft()
             event_name, args, kwargs = event
-            all_ok = self.fire(event_name, *args, *kwargs) and all_ok
+            all_ok = self.fire(event_name, *args, **kwargs) and all_ok
         return all_ok
 
     def __str__(self) -> str:
